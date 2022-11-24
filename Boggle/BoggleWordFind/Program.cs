@@ -75,7 +75,7 @@ namespace BoggleWordFind
         {
             if (contents.Length != (height * width))
             {
-                Console.WriteLine($"Contents size of {contents.Length} < {(height * height)}.");
+                Console.WriteLine($"Contents size of {contents.Length} != {(height * height)}.");
                 return -1;
             }
 
