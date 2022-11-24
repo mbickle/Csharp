@@ -42,6 +42,11 @@ namespace BoggleWordFind
         /// <param name="wordSource">The word source.</param>
         public void SetValidWordSource(IEnumerable<string> wordSource)
         {
+            if (wordSource == null)
+            {
+                throw new ArgumentNullException("wordSource cannot be null.");
+            }
+
             wordDictionary = new Dictionary<char, List<string>>();
 
             // Break up the words via starting char to split dictionary up
@@ -72,6 +77,7 @@ namespace BoggleWordFind
         /// <exception cref="System.ArgumentException">Must be at least a 3x3 board.</exception>
         /// <exception cref="System.ArgumentException">Contents length should equal height.</exception>
         /// <exception cref="System.ArgumentException">Contents are not valid. Must be at least the size of board and contain letters.</exception>
+        /// <exception cref="System.ArgumentNullException">Contents cannot be null.</exception>
         public void SetBoggleBoardState(int width, int height, char[][] contents)
         {
             if (width < minWidth || height < minHeight)
@@ -83,6 +89,11 @@ namespace BoggleWordFind
             if (width != height)
             {
                 throw new ArgumentException("Width and heigth must be equal.");
+            }
+
+            if (contents == null)
+            {
+                throw new ArgumentNullException("contents cannot be null.");
             }
 
             // Contents should have as many rows as height and contain valid content
@@ -108,6 +119,17 @@ namespace BoggleWordFind
         /// <returns>Collection of found words.</returns>
         public IEnumerable<string> GetFoundWords()
         {
+            if (WordDictionary == null)
+            {
+                throw new NullReferenceException("Word Dictionary is null, hasn't been initialized yet.  Must run SetValidWordSource.");
+            }
+
+            if (Board == null)
+            {
+                throw new NullReferenceException("Board is null, hasn't been initialized yet.  Must run SetBoggleBoardState.");
+            }
+
+
             var wordsFound = new List<string>();
             var rowsCount = board.GetLength(0);
             var columnsCount = board.GetLength(1);

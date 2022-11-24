@@ -35,6 +35,15 @@ namespace BoggleWordFind.UnitTests
         }
 
         [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void SetValidWordSource_Invalid_Exception()
+        {
+            var words = new List<string>() { "bar", "car", "care", "dare", "ace", "ok" };
+            Assert.IsNull(boggleTestable.WordDictionary);
+            boggleTestable.SetValidWordSource(null);
+        }
+
+        [TestMethod]
         public void SetBoggleBoardState_Valid()
         {
             const int width = 3;
@@ -51,6 +60,21 @@ namespace BoggleWordFind.UnitTests
             Assert.IsTrue(boggleTestable.Board.Length == (width * height), "Board should match width * height");
             Assert.IsTrue(boggleTestable.Board[0, 0] == 'a', "Board[0,0] should be 'a'");
             Assert.IsTrue(boggleTestable.Board[2, 2] == 'e', "Board[2,2] should be 'e'");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void SetBoggleBoardState_Invalid_Exception()
+        {
+            const int width = 3;
+            const int height = 3;
+
+            char[][] contents = new char[height][];
+            contents[0] = new char[width] { 'a', 'c', 'e' };
+            contents[1] = new char[width] { 'a', 'c', 'e' };
+            contents[2] = new char[width] { 'a', 'c', 'e' };
+
+            boggleTestable.SetBoggleBoardState(width, height, null);
         }
 
         [TestMethod]
@@ -204,6 +228,40 @@ namespace BoggleWordFind.UnitTests
 
             Assert.IsNotNull(results);
             Assert.IsTrue(results.Count() == 0, $"Expected to find 0 words, found {results.Count()}");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(NullReferenceException))]
+        public void GetFoundWords_WordDictionary_Exception()
+        {
+            const int width = 3;
+            const int height = 3;
+            var words = new List<string>() { "hot", "car", "care", "hoot", "ace", "ace", "to", "too", "chocolate", "chocolates" };
+
+            char[][] contents = new char[height][];
+            contents[0] = new char[width] { 'c', 'h', 'o' };
+            contents[1] = new char[width] { 'l', 'o', 'c' };
+            contents[2] = new char[width] { 'a', 't', 'e' };
+
+            boggleTestable.SetBoggleBoardState(width, height, contents);
+            var results = boggleTestable.GetFoundWords();
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(NullReferenceException))]
+        public void GetFoundWords_Board_Exception()
+        {
+            const int width = 3;
+            const int height = 3;
+            var words = new List<string>() { "hot", "car", "care", "hoot", "ace", "ace", "to", "too", "chocolate", "chocolates" };
+
+            char[][] contents = new char[height][];
+            contents[0] = new char[width] { 'c', 'h', 'o' };
+            contents[1] = new char[width] { 'l', 'o', 'c' };
+            contents[2] = new char[width] { 'a', 't', 'e' };
+
+            boggleTestable.SetValidWordSource(words);
+            var results = boggleTestable.GetFoundWords();
         }
     }
 }
