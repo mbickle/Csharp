@@ -12,12 +12,12 @@ namespace BoggleWordFind
 
             var heightOption = new Option<int>(
                 name: "--height",
-                description: "Enter height of 3 or greater for boggle board height.",
+                description: "Enter height of boggle board height.",
                 getDefaultValue: () => 3);
 
             var widthOption = new Option<int>(
                 name: "--width",
-                description: "Enter width of boggle board. 3 or greater, should be equal to height.",
+                description: "Enter width of boggle board.",
                 getDefaultValue: () => 3);
 
             var contentsOption = new Option<string>(
@@ -42,14 +42,14 @@ namespace BoggleWordFind
             rootCommand.AddOption(dictionaryFileOption);
 
             rootCommand.SetHandler(
-                (heightOptionValue, 
-                widthOptionValue, 
+                (widthOptionValue,
+                heightOptionValue,
                 contentsOptionValue, 
                 dictionaryFileOptionValue) =>
             {
-                returnCode = SetupBoard(
-                    heightOptionValue, 
-                    widthOptionValue, 
+                returnCode = SetupBoard(                     
+                    widthOptionValue,
+                    heightOptionValue,
                     contentsOptionValue,
                     dictionaryFileOptionValue);
             },
@@ -66,16 +66,16 @@ namespace BoggleWordFind
         /// <summary>
         /// Setups the board.
         /// </summary>
-        /// <param name="height">The height.</param>
         /// <param name="width">The width.</param>
+        /// <param name="height">The height.</param>
         /// <param name="contents">The contents.</param>
         /// <param name="dictionaryFile">The dictionary file.</param>
         /// <returns></returns>
-        private static int SetupBoard(int height, int width, string contents, string dictionaryFile)
+        private static int SetupBoard(int width, int height, string contents, string dictionaryFile)
         {
-            if (contents.Length != (height * width))
+            if (contents.Length != (width * height))
             {
-                Console.WriteLine($"Contents size of {contents.Length} != {(height * height)}.");
+                Console.WriteLine($"Contents size of {contents.Length} != {(height * width)}.");
                 return -1;
             }
 
@@ -87,7 +87,7 @@ namespace BoggleWordFind
 
             try
             {
-                char[][] contentsArray = CreateContentsArray(contents, width);
+                char[][] contentsArray = CreateContentsArray(contents, width, height);
                 List<string> words = File.ReadAllLines(dictionaryFile).ToList();
                 var wordsFound = new List<string>();
                 var boggle = new BoggleTestable();
@@ -101,7 +101,7 @@ namespace BoggleWordFind
                 Console.WriteLine("SetBoggleBoardState");
                 TimeIt(() =>
                 {
-                    boggle.SetBoggleBoardState(height, width, contentsArray);
+                    boggle.SetBoggleBoardState(width, height, contentsArray);
                 });
 
                 Console.WriteLine("GetFoundWords");

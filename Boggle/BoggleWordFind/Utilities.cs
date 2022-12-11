@@ -36,17 +36,18 @@ namespace BoggleWordFind
 
         /// <summary>Gets the random character.</summary>
         /// <param name="chars">The chars.</param>
-        /// <param name="size"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
         /// <returns>char[][]</returns>
-        internal static char[][] CreateContentsArray(string chars, int size)
+        internal static char[][] CreateContentsArray(string chars, int width, int height)
         {
-            char[][] charArray = new char[size][];
+            char[][] charArray = new char[height][];
             var index = 0;
 
-            for (int r = 0; r < size; r++)
+            for (int r = 0; r < height; r++)
             {
-                charArray[r] = new char[size];
-                for (int c = 0; c < size; c++)
+                charArray[r] = new char[width];
+                for (int c = 0; c < width; c++)
                 {
                     charArray[r][c] = chars[index];
                     index++;

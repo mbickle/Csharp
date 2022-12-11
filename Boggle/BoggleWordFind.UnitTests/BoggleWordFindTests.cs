@@ -79,35 +79,6 @@ namespace BoggleWordFind.UnitTests
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentException))]
-        public void SetBoggleBoardState_Invalid_Width_Exception()
-        {
-            const int width = 2;
-            const int height = 3;
-
-            char[][] contents = new char[height][];
-            contents[0] = new char[width] { 'a', 'c' };
-            contents[1] = new char[width] { 'a', 'c' };
-            contents[2] = new char[width] { 'a', 'c' };
-
-            boggleTestable.SetBoggleBoardState(width, height, contents);
-        }
-
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
-        public void SetBoggleBoardState_Invalid_Height_Exception()
-        {
-            const int width = 3;
-            const int height = 2;
-
-            char[][] contents = new char[height][];
-            contents[0] = new char[width] { 'a', 'c', 'e' };
-            contents[1] = new char[width] { 'a', 'c', 'e' };
-
-            boggleTestable.SetBoggleBoardState(width, height, contents);
-        }
-
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
         public void SetBoggleBoardState_Invalid_Contents_NotLetter_Exception()
         {
             const int width = 3;

@@ -73,27 +73,14 @@ namespace BoggleWordFind
         /// <param name="width">The width.</param>
         /// <param name="height">The height.</param>
         /// <param name="contents">The contents.</param>
-        /// <exception cref="System.ArgumentException">Width and height must be equal.</exception>
-        /// <exception cref="System.ArgumentException">Must be at least a 3x3 board.</exception>
         /// <exception cref="System.ArgumentException">Contents length should equal height.</exception>
         /// <exception cref="System.ArgumentException">Contents are not valid. Must be at least the size of board and contain letters.</exception>
         /// <exception cref="System.ArgumentNullException">Contents cannot be null.</exception>
         public void SetBoggleBoardState(int width, int height, char[][] contents)
         {
-            if (width < minWidth || height < minHeight)
-            {
-                throw new ArgumentException("Must be at least a 3x3 board.");
-            }
-
-            // Expect board to be square
-            if (width != height)
-            {
-                throw new ArgumentException("Width and heigth must be equal.");
-            }
-
             if (contents == null)
             {
-                throw new ArgumentNullException("contents cannot be null.");
+                throw new ArgumentNullException("Contents cannot be null.");
             }
 
             // Contents should have as many rows as height and contain valid content
@@ -103,7 +90,7 @@ namespace BoggleWordFind
             }
 
             // Initialize Board
-            board = new char[width, height];
+            board = new char[height, width];
 
             // Populate Board
             for (int i = 0; i < height; i++)
