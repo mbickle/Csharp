@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using BoggleWordFind.Interfaces;
+﻿using BoggleWordFind.Interfaces;
 
 namespace BoggleWordFind
 {
@@ -15,21 +13,21 @@ namespace BoggleWordFind
 
         /// <summary>Gets the word dictionary.</summary>
         /// <value>The word dictionary.</value>
-        public Dictionary<char, List<string>> WordDictionary 
+        public Dictionary<char, List<string>> WordDictionary
         {
             get
-            { 
-                return wordDictionary; 
-            } 
+            {
+                return wordDictionary;
+            }
         }
 
         /// <summary>Gets the board.</summary>
         /// <value>The board.</value>
         public char[,] Board
         {
-            get 
-            { 
-                return board; 
+            get
+            {
+                return board;
             }
         }
 
@@ -188,7 +186,7 @@ namespace BoggleWordFind
 
             // Mark visited
             visited[row, column] = true;
-            
+
             // Search
             // East
             SearchBoard(board, row, column - 1, currentIndex + 1, word, wordsFound, visited);

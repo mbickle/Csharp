@@ -1,6 +1,4 @@
 using System.Diagnostics;
-using System.Linq;
-using BoggleWordFind.Interfaces;
 
 namespace BoggleWordFind.UnitTests
 {
@@ -128,7 +126,7 @@ namespace BoggleWordFind.UnitTests
             const int height = 3;
 
             char[][] contents = new char[height][];
-            contents[0] = new char[width] { 'a', 'c', 'e'};
+            contents[0] = new char[width] { 'a', 'c', 'e' };
             contents[1] = new char[width] { 'a', 'c', 'e' };
 
             boggleTestable.SetBoggleBoardState(width, height, contents);
@@ -145,7 +143,7 @@ namespace BoggleWordFind.UnitTests
             contents[0] = new char[width] { 'c', 'h', 'o' };
             contents[1] = new char[width] { 'l', 'o', 'c' };
             contents[2] = new char[width] { 'a', 't', 'e' };
-            
+
             boggleTestable.SetValidWordSource(words);
             boggleTestable.SetBoggleBoardState(width, height, contents);
             var results = boggleTestable.GetFoundWords();
@@ -171,7 +169,7 @@ namespace BoggleWordFind.UnitTests
             for (int i = 0; i < height; i++)
             {
                 contents[i] = Utilities.GenerateRandomCharArray(chars, width, i);
-            }            
+            }
 
             boggleTestable.SetValidWordSource(words);
             boggleTestable.SetBoggleBoardState(width, height, contents);

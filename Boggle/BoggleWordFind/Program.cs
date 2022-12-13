@@ -1,5 +1,4 @@
 ﻿using System.CommandLine;
-using System.Diagnostics;
 using static BoggleWordFind.Utilities;
 
 namespace BoggleWordFind
@@ -36,7 +35,7 @@ namespace BoggleWordFind
             };
 
             var rootCommand = new RootCommand("Boggle WordFind");
-            rootCommand.AddOption(widthOption); 
+            rootCommand.AddOption(widthOption);
             rootCommand.AddOption(heightOption);
             rootCommand.AddOption(contentsOption);
             rootCommand.AddOption(dictionaryFileOption);
@@ -44,18 +43,18 @@ namespace BoggleWordFind
             rootCommand.SetHandler(
                 (widthOptionValue,
                 heightOptionValue,
-                contentsOptionValue, 
+                contentsOptionValue,
                 dictionaryFileOptionValue) =>
             {
-                returnCode = SetupBoard(                     
+                returnCode = SetupBoard(
                     widthOptionValue,
                     heightOptionValue,
                     contentsOptionValue,
                     dictionaryFileOptionValue);
             },
-            heightOption, 
-            widthOption, 
-            contentsOption, 
+            heightOption,
+            widthOption,
+            contentsOption,
             dictionaryFileOption);
 
             await rootCommand.InvokeAsync(args);
