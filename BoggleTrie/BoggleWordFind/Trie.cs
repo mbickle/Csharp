@@ -4,6 +4,17 @@
     {
         private TrieNode root;
 
+
+        /// <summary>Gets the root.</summary>
+        /// <value>The root.</value>
+        public TrieNode Root
+        {
+            get
+            {
+                return root;
+            }
+        }
+
         /// <summary>Initializes a new instance of the <see cref="Trie" /> class.</summary>
         public Trie()
         {
@@ -78,6 +89,17 @@
         private Dictionary<char, TrieNode> children;
         private bool isComplete;
         private int count;
+
+
+        /// <summary>Gets the children.</summary>
+        /// <value>The children.</value>
+        public Dictionary<char, TrieNode> Children
+        {
+            get
+            {
+                return children;
+            }
+        }
 
         /// <summary>Initializes a new instance of the <see cref="TrieNode" /> class.</summary>
         public TrieNode()
