@@ -3,7 +3,7 @@ Basic sample app connecting to the Twitter API v2 to process the Volume Streams 
 https://developer.twitter.com/en/docs/twitter-api/tweets/volume-streams/introduction
 
 # Configuration
-* Go to TwitterStreamApp\appsettings.json
+* Go to TwitterStream.ConsoleApp\appsettings.json
 * Edit the appsettings.json file and add the BearerToken value.
 * Run the TwitterStreamApp Console App.
 
