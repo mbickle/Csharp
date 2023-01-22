@@ -3,7 +3,6 @@ using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using Polly;
 using TwitterStream.Core;
-using TwitterStream.Data;
 using TwitterStream.Interfaces;
 
 namespace TwitterStream.Service
@@ -56,7 +55,7 @@ namespace TwitterStream.Service
                                 var tweet = DeserializeTweet(line);
                                 if (tweet != null)
                                 {
-                                    Process(tweet);
+                                    await Process(tweet);
                                 }
 
                                 line = await reader.ReadLineAsync();
@@ -79,19 +78,23 @@ namespace TwitterStream.Service
 
         /// <summary>Processes the specified tweet.</summary>
         /// <param name="tweet">The tweet.</param>
-        public void Process(ITweetModel tweet)
+        public async Task Process(ITweetModel tweet)
         {
             if (!string.IsNullOrEmpty(tweet.Content))
             {
-                var hashTags = GetValidHashtags(tweet.Content);
-                var tweetResult = new Tweet
+                var tweetResult = new TwitterStream.Data.Models.Tweet
                 {
                     Id = tweet.TweetId,
                     Content = tweet.Content,
-                    Hashtags = JsonSerializer.Serialize(hashTags)
                 };
 
-                store.Add(tweetResult);
+                await store.AddOrUpdateTweet(tweetResult);
+
+                var hashTags = GetValidHashtags(tweet.Content);
+                if (hashTags.Any())
+                {
+                    await store.AddOrUpdateHashtag(hashTags, tweet.TweetId);
+                }
             }
         }
 
@@ -116,7 +119,7 @@ namespace TwitterStream.Service
                     throw new InvalidDataException($"Unable to deserialize tweet. {input}");
                 }
 
-                return new TweetModel(tweet.data.id, tweet.data.text);
+                return new TweetModel(long.Parse(tweet.data.id), tweet.data.text);
             }
             catch (Exception ex)
             {

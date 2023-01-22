@@ -1,7 +1,10 @@
 using System.Diagnostics;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Moq;
-using TwitterStream.Core;
+using TwitterStream.Data;
+using TwitterStream.Data.Models;
 using TwitterStream.Interfaces;
 using TwitterStream.Service;
 
@@ -10,6 +13,9 @@ namespace TwitterStreamApp.UnitTests
     [TestClass]
     public class TwitterStreamServiceTests
     {
+        private TwitterStreamDbContext dbContext;
+        private DbContextOptionsBuilder<TwitterStreamDbContext> dbContextOptionsBuilder;
+
         /// <summary>
         /// Mocking TwitterStreamService()
         /// </summary>
@@ -22,7 +28,23 @@ namespace TwitterStreamApp.UnitTests
             Mock<HttpClient> httpClientMock = new();
             Mock<ITwitterStreamAppConfiguration> twitterStreamAppConfigurationMock = new();
 
-            return (new StreamService(storeMock.Object, httpClientMock.Object, loggerMock.Object, twitterStreamAppConfigurationMock.Object), storeMock);
+            return (new StreamService(
+                storeMock.Object,
+                httpClientMock.Object,
+                loggerMock.Object,
+                twitterStreamAppConfigurationMock.Object), storeMock);
+        }
+
+        /// <summary>
+        /// Mocking TwitterStream.Store()
+        /// </summary>
+        /// <returns></returns>
+        private (Store, Mock<ITweetStore>) CreateTwitterStreamStore()
+        {
+            Mock<ITweetStore> storeMock = new();
+            storeMock.SetReturnsDefault<Guid>(Guid.NewGuid());
+
+            return (new Store(dbContext), storeMock);
         }
 
         /// <summary>
@@ -39,6 +61,14 @@ namespace TwitterStreamApp.UnitTests
         {
             Trace.WriteLine("Trace.TestInitialize");
             Trace.WriteLine($"{TestContext.TestName}");
+
+            dbContextOptionsBuilder = new DbContextOptionsBuilder<TwitterStreamDbContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString("N"))
+                .UseQueryTrackingBehavior(QueryTrackingBehavior.TrackAll)
+                .ConfigureWarnings(b => b.Ignore(InMemoryEventId.TransactionIgnoredWarning))
+                .EnableSensitiveDataLogging(true);
+
+            dbContext = new TwitterStreamDbContext(dbContextOptionsBuilder.Options);
         }
 
         /// <summary>
@@ -51,33 +81,54 @@ namespace TwitterStreamApp.UnitTests
         }
 
         [TestMethod]
-        public void ProcessTweet_Content()
+        public async Task ProcessTweet_ContentNoHashtag()
         {
-            var (handler, store) = CreateTwitterStreamService();
-            var tweet = new TweetModel(tweetId: Guid.NewGuid().ToString(), content: "{\"data\":{\"edit_history_tweet_ids\":[\"1605594247092117505\"],\"id\":\"1605594247092117505\",\"text\":\"RT @ST0NEHENGE: Winter solstice: The science behind the shortest day of the year https://t.co/UhH0ZER2b4\"}}");
+            var (handlerService, service) = CreateTwitterStreamService();
+            var tweetString = "{\"data\":{\"edit_history_tweet_ids\":[\"1605594247092117505\"],\"id\":\"1605594247092117505\",\"text\":\"RT @ST0NEHENGE: Winter solstice: The science behind the shortest day of the year https://t.co/UhH0ZER2b4\"}}";
+            
+            var tweet = handlerService.DeserializeTweet(tweetString);
+            Assert.IsNotNull(tweet);
+            Assert.IsTrue(tweet.TweetId == 1605594247092117505, "Unexpected TweetId");
 
-            handler.Process(tweet);
-            store.Verify(call => call.Add(It.IsAny<ITweet>()), Times.Exactly(1), "Should be called once.");
+            await handlerService.Process(tweet);
+            service.Verify(call => call.AddOrUpdateTweet(It.IsAny<Tweet>()), Times.Exactly(1), "Should be called once.");
+            service.Verify(call => call.AddOrUpdateHashtag(It.IsAny<IEnumerable<string>>(), It.IsAny<long>()), Times.Exactly(0), "Should be called zero, no hashtags.");
         }
 
         [TestMethod]
-        public void ProcessTweet_NoContent()
+        public async Task ProcessTweet_ContentHashtag()
         {
-            var (handler, store) = CreateTwitterStreamService();
-            var tweet = new TweetModel(tweetId: Guid.NewGuid().ToString(), content: "");
+            var (handlerService, service) = CreateTwitterStreamService();
+            var tweetString = "{\"data\":{\"edit_history_tweet_ids\":[\"1605594247092117505\"],\"id\":\"1605594247092117505\",\"text\":\"RT @ST0NEHENGE: Winter solstice: The science behind the shortest day of the year #helloworld https://t.co/UhH0ZER2b4\"}}";
 
-            handler.Process(tweet);
-            store.Verify(call => call.Add(It.IsAny<ITweet>()), Times.Exactly(0), "Should be called zero.");
+            var tweet = handlerService.DeserializeTweet(tweetString);
+            Assert.IsNotNull(tweet);
+            Assert.IsTrue(tweet.TweetId == 1605594247092117505, "Unexpected TweetId");
+
+            await handlerService.Process(tweet);
+            service.Verify(call => call.AddOrUpdateTweet(It.IsAny<Tweet>()), Times.Exactly(1), "Should be called once.");
+            service.Verify(call => call.AddOrUpdateHashtag(It.IsAny<IEnumerable<string>>(), It.IsAny<long>()), Times.Exactly(1), "Should be called zero, no hashtags.");
+        }
+
+        [TestMethod]
+        public async Task ProcessTweet_NoContent()
+        {
+            var (handlerService, service) = CreateTwitterStreamService();
+            var tweet = new TweetModel(tweetId: 1234, content: "");
+
+            await handlerService.Process(tweet);
+            service.Verify(call => call.AddOrUpdateTweet(It.IsAny<Tweet>()), Times.Exactly(0), "Should be called zero.");
         }
 
         [TestMethod]
         public void GetValidHashtags_Valid()
         {
             var (handler, _) = CreateTwitterStreamService();
-            var tweet = new TweetModel(tweetId: Guid.NewGuid().ToString(), content: "{\"data\":{\"edit_history_tweet_ids\":[\"1605594247092117505\"],\"id\":\"1605594247092117505\",\"text\":\"RT @ST0NEHENGE: Winter solstice: The science behind the shortest day of the year https://t.co/UhH0ZER2b4 #science\"}}");
+            var tweet = new TweetModel(tweetId: 1234, content: "{\"data\":{\"edit_history_tweet_ids\":[\"1605594247092117505\"],\"id\":\"1605594247092117505\",\"text\":\"RT @ST0NEHENGE: Winter solstice: The science behind the shortest day of the year https://t.co/UhH0ZER2b4 #science\"}}");
 
             var results = handler.GetValidHashtags(tweet.Content);
             Assert.IsTrue(results.Count > 0);
+            Assert.IsTrue(results.Contains("#science"), "Expected #science to be in list of hashtags.");
         }
 
         [TestMethod]
@@ -100,7 +151,7 @@ namespace TwitterStreamApp.UnitTests
             Assert.IsNotNull(results.Content);
             Assert.IsNotNull(results.TweetId);
             Assert.IsTrue(results.Content.Contains("Winter solstice"));
-            Assert.IsTrue(results.TweetId == "1605594247092117505");
+            Assert.IsTrue(results.TweetId == 1605594247092117505);
         }
 
         [TestMethod]

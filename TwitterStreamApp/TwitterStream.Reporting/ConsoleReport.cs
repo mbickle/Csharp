@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using TwitterStream.Core;
+using TwitterStream.Data;
 using TwitterStream.Interfaces;
 
 namespace TwitterStream.Reporting
@@ -29,19 +29,19 @@ namespace TwitterStream.Reporting
         /// <returns>
         ///   <br />
         /// </returns>
-        public Task Report(CancellationToken cancellationToken)
+        public async Task Report(CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested)
             {
                 logger.LogInformation("");
-                logger.LogInformation($"Tweet Count: {store.GetCount()}");
+                logger.LogInformation($"Tweet Count: {await store.GetTweetCount()}");
                 logger.LogInformation($"Top 10 Hashtags: ");
 
-                var hashtags = store.GetTopHashtags(10);
+                var hashtags = await store.GetTopHashtags(10);
 
                 foreach (var tag in hashtags)
                 {
-                    logger.LogInformation($"\t{tag}");
+                    logger.LogInformation($"\t{tag.Content} : {tag.Count}");
                 }
 
                 // Refresh stats every second
@@ -51,7 +51,7 @@ namespace TwitterStream.Reporting
                 Thread.Sleep(TimeSpan.FromSeconds(configuration.RefreshSeconds));
             }
 
-            return Task.CompletedTask;
+            await Task.CompletedTask;
         }
     }
 }

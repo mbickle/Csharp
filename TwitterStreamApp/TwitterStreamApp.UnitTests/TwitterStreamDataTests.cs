@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Moq;
 using TwitterStream.Data;
+using TwitterStream.Data.Models;
 using TwitterStream.Interfaces;
 using TwitterStream.Service;
 
@@ -16,16 +13,38 @@ namespace TwitterStreamApp.UnitTests
     [TestClass]
     public class TwitterStreamDataTests
     {
+        private TwitterStreamDbContext dbContext;
+        private DbContextOptionsBuilder<TwitterStreamDbContext> dbContextOptionsBuilder;
+
         /// <summary>
-        /// Mocking TwitterStreamData()
+        /// Mocking TwitterStream.Store()
         /// </summary>
         /// <returns></returns>
-        private (TweetStore, Mock<ITweetStore>) CreateTwitterStreamStore()
+        private (Store, Mock<ITweetStore>) CreateTwitterStreamStore()
         {
             Mock<ITweetStore> storeMock = new();
             storeMock.SetReturnsDefault<Guid>(Guid.NewGuid());
 
-            return (new TweetStore(), storeMock);
+            return (new Store(dbContext), storeMock);
+        }
+
+        /// <summary>
+        /// Mocking TwitterStreamService()
+        /// </summary>
+        /// <returns></returns>
+        private (StreamService, Mock<ITweetStore>) CreateTwitterStreamService()        
+        {
+            Mock<ILogger<StreamService>> loggerMock = new();
+            Mock<ITweetStore> storeMock = new();
+            storeMock.SetReturnsDefault<Guid>(Guid.NewGuid());
+            Mock<HttpClient> httpClientMock = new();
+            Mock<ITwitterStreamAppConfiguration> twitterStreamAppConfigurationMock = new();
+
+            return (new StreamService(
+                storeMock.Object, 
+                httpClientMock.Object, 
+                loggerMock.Object, 
+                twitterStreamAppConfigurationMock.Object), storeMock);
         }
 
         /// <summary>
@@ -42,6 +61,14 @@ namespace TwitterStreamApp.UnitTests
         {
             Trace.WriteLine("Trace.TestInitialize");
             Trace.WriteLine($"{TestContext.TestName}");
+
+            dbContextOptionsBuilder = new DbContextOptionsBuilder<TwitterStreamDbContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString("N"))
+                .UseQueryTrackingBehavior(QueryTrackingBehavior.TrackAll)
+                .ConfigureWarnings(b => b.Ignore(InMemoryEventId.TransactionIgnoredWarning))
+                .EnableSensitiveDataLogging(true);
+
+            dbContext = new TwitterStreamDbContext(dbContextOptionsBuilder.Options);
         }
 
         /// <summary>
@@ -54,39 +81,48 @@ namespace TwitterStreamApp.UnitTests
         }
 
         [TestMethod]
-        public void StoreAdd_Valid()
+        public async Task StoreAdd_Valid()
         {
-            var (handler, store) = CreateTwitterStreamStore();
+            var (handlerStore, store) = CreateTwitterStreamStore();
+            var (handlerService, service) = CreateTwitterStreamService();
             var tweet = new Tweet()
             {
-                Id = "1234",
-                Content = "Hello World",
-                Hashtags = JsonSerializer.Serialize(new List<string> { "#helloworld" })
+                Id = 1234,
+                Content = "Hello World #helloworld"
             };
 
-            handler.Add(tweet);
-            var count = handler.GetCount();
-            var hashtags = handler.GetTopHashtags(1);
-            Assert.IsTrue(count == 1, "Expected count to be 1");
-            Assert.IsTrue(hashtags.Count == 1, "Expected count to be 1");
-            Assert.IsTrue(hashtags.First() == "#helloworld", "Expected hashtag not found.");
+            await handlerStore.AddOrUpdateTweet(tweet);
+
+            var hashtags = handlerService.GetValidHashtags(tweet.Content);
+
+            await handlerStore.AddOrUpdateHashtag(hashtags, tweet.Id);
+            var tweetCount = await handlerStore.GetTweetCount();
+            var topHashtags = await handlerStore.GetTopHashtags(1);
+
+            Assert.IsTrue(tweetCount == 1, "Expected count to be 1");
+            Assert.IsTrue(topHashtags.Count == 1, "Expected count to be 1");
+            Assert.IsTrue(topHashtags.First().Content == "#helloworld", "Expected hashtag not found.");
         }
 
         [TestMethod]
-        public void StoreGetTopHashtags_Valid()
+        public async Task StoreGetTopHashtags_Valid()
         {
-            var (handler, store) = CreateTwitterStreamStore();
+            var (handlerStore, store) = CreateTwitterStreamStore();
+            var (handlerService, service) = CreateTwitterStreamService();
             var tweet = new Tweet()
             {
-                Id = "1234",
-                Content = "Hello World",
-                Hashtags = JsonSerializer.Serialize(new List<string> { "#helloworld" })
+                Id = 1234,
+                Content = "Hello World #helloworld",
             };
 
-            handler.Add(tweet);
-            var result = handler.GetTopHashtags(10);
-            Assert.IsTrue(result.Count > 0);
-            Assert.IsTrue(result.Contains("#helloworld"), "Expected hashtag not found");
+            var hashtags = handlerService.GetValidHashtags(tweet.Content);
+
+            await handlerStore.AddOrUpdateHashtag(hashtags, tweet.Id);
+            await handlerStore.AddOrUpdateHashtag(hashtags, tweet.Id);
+            var result = await handlerStore.GetTopHashtags(10);
+            Assert.IsTrue(result.Count == 1);
+            Assert.IsTrue(result.Any(h => h.Content == "#helloworld"), "Expected hashtag not found");
+            Assert.IsTrue(result.Any(h => h.Count == 2), "Expected hashtag count == 2");
         }
     }
 }

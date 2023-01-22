@@ -2,8 +2,7 @@
 {
     public interface ITweet
     {
-        string Id { get; set; }
+        long Id { get; set; }
         string Content { get; set; }
-        string Hashtags { get; set; }
     }
 }
