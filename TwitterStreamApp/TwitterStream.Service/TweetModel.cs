@@ -9,10 +9,10 @@ namespace TwitterStream.Service
 {
     public class TweetModel : ITweetModel
     {
-        public string TweetId { get; set; }
+        public long TweetId { get; set; }
         public string Content { get; set; }
 
-        public TweetModel(string tweetId, string content)
+        public TweetModel(long tweetId, string content)
         {
             TweetId = tweetId;
             Content = content;

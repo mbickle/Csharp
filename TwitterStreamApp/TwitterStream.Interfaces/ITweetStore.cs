@@ -1,9 +1,12 @@
-﻿namespace TwitterStream.Interfaces
+﻿using TwitterStream.Data.Models;
+
+namespace TwitterStream.Interfaces
 {
     public interface ITweetStore
     {
-        void Add(ITweet tweet);
-        List<string> GetTopHashtags(int count);
-        int GetCount();
+        Task AddOrUpdateTweet(Tweet tweet);
+        Task AddOrUpdateHashtag(IEnumerable<string> hashtag, long tweetId);
+        Task<List<Hashtag>> GetTopHashtags(int count);
+        Task<int> GetTweetCount();
     }
 }

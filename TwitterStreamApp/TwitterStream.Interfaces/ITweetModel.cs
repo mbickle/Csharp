@@ -2,7 +2,7 @@
 {
     public interface ITweetModel
     {
-        string TweetId { get; set; }
+        long TweetId { get; set; }
         string Content { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
@@ -33,12 +34,16 @@ namespace TwitterStream.ConsoleApp
             var httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Authorization = new("Bearer", twitterStreamAppConfiguration.BearerToken);
 
+            services.AddDbContext<TwitterStreamDbContext>(options =>
+            {
+                options.UseInMemoryDatabase(databaseName: "TwitterStream");
+            });
+
             // Singleton
-            var store = new TweetStore();
-            services.AddSingleton<ITweetStore>(store);
             services.AddSingleton<HttpClient>(httpClient);
             services.AddSingleton(Log.Logger);
             services.AddSingleton<ITwitterStreamAppConfiguration>(twitterStreamAppConfiguration);
+            services.AddSingleton<ITweetStore, TwitterStream.Service.Store>();
 
             // Transient
             services.AddTransient<ITwitterStreamService, StreamService>();
@@ -56,7 +61,7 @@ namespace TwitterStream.ConsoleApp
             Log.Logger = new LoggerConfiguration()
                 .ReadFrom.Configuration(configuration)
                 .Enrich.FromLogContext()
-                .WriteTo.Console()
+                .WriteTo.Console()                
                 .CreateLogger();
 
             return Host.CreateDefaultBuilder()
