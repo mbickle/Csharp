@@ -88,7 +88,7 @@ namespace TwitterStreamApp.UnitTests
             
             var tweet = handlerService.DeserializeTweet(tweetString);
             Assert.IsNotNull(tweet);
-            Assert.IsTrue(tweet.TweetId == 1605594247092117505, "Unexpected TweetId");
+            Assert.IsTrue(tweet.Id == 1605594247092117505, "Unexpected TweetId");
 
             await handlerService.Process(tweet);
             service.Verify(call => call.AddOrUpdateTweet(It.IsAny<Tweet>()), Times.Exactly(1), "Should be called once.");
@@ -103,7 +103,7 @@ namespace TwitterStreamApp.UnitTests
 
             var tweet = handlerService.DeserializeTweet(tweetString);
             Assert.IsNotNull(tweet);
-            Assert.IsTrue(tweet.TweetId == 1605594247092117505, "Unexpected TweetId");
+            Assert.IsTrue(tweet.Id == 1605594247092117505, "Unexpected TweetId");
 
             await handlerService.Process(tweet);
             service.Verify(call => call.AddOrUpdateTweet(It.IsAny<Tweet>()), Times.Exactly(1), "Should be called once.");
@@ -149,9 +149,9 @@ namespace TwitterStreamApp.UnitTests
             var results = handler.DeserializeTweet(tweet);
             Assert.IsNotNull(results);
             Assert.IsNotNull(results.Content);
-            Assert.IsNotNull(results.TweetId);
+            Assert.IsNotNull(results.Id);
             Assert.IsTrue(results.Content.Contains("Winter solstice"));
-            Assert.IsTrue(results.TweetId == 1605594247092117505);
+            Assert.IsTrue(results.Id == 1605594247092117505);
         }
 
         [TestMethod]

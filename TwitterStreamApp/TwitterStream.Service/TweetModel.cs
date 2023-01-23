@@ -7,14 +7,14 @@ using TwitterStream.Interfaces;
 
 namespace TwitterStream.Service
 {
-    public class TweetModel : ITweetModel
+    public class TweetModel : ITweet
     {
-        public long TweetId { get; set; }
+        public long Id { get; set; }
         public string Content { get; set; }
 
         public TweetModel(long tweetId, string content)
         {
-            TweetId = tweetId;
+            Id = tweetId;
             Content = content;
         }
     }

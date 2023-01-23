@@ -78,13 +78,13 @@ namespace TwitterStream.Service
 
         /// <summary>Processes the specified tweet.</summary>
         /// <param name="tweet">The tweet.</param>
-        public async Task Process(ITweetModel tweet)
+        public async Task Process(ITweet tweet)
         {
             if (!string.IsNullOrEmpty(tweet.Content))
             {
                 var tweetResult = new TwitterStream.Data.Models.Tweet
                 {
-                    Id = tweet.TweetId,
+                    Id = tweet.Id,
                     Content = tweet.Content,
                 };
 
@@ -93,7 +93,7 @@ namespace TwitterStream.Service
                 var hashTags = GetValidHashtags(tweet.Content);
                 if (hashTags.Any())
                 {
-                    await store.AddOrUpdateHashtag(hashTags, tweet.TweetId);
+                    await store.AddOrUpdateHashtag(hashTags, tweet.Id);
                 }
             }
         }
@@ -104,7 +104,7 @@ namespace TwitterStream.Service
         ///   <br />
         /// </returns>
         /// <exception cref="InvalidDataException">Unable to deserialize tweet. {input}</exception>
-        public TweetModel DeserializeTweet(string input)
+        public ITweet DeserializeTweet(string input)
         {
             Validation.EnsureNotNullOrWhiteSpace(input);
 
