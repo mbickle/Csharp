@@ -1,0 +1,8 @@
+version: '3.11.8'
+
+services:
+  twitterstreamingconsole:
+    image:TwitterStreamConsoleApp
+    build:
+      context: .
+      dockerfile:TwitterStream.ConsoleApp/DOCKERFILE
